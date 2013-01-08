@@ -34,8 +34,8 @@ public class ClusterDumper {
 			for (File file : files) {
 				if (file.getName().indexOf("part-m") < 0)
 					continue;
-				SequenceFile.Reader reader = new SequenceFile.Reader(fs,
-						new Path(file.getAbsolutePath()), conf);
+				String aPath = file.getAbsolutePath();
+				SequenceFile.Reader reader = new SequenceFile.Reader(fs, new Path(aPath), conf);
 				IntWritable key = new IntWritable();
 				WeightedVectorWritable value = new WeightedVectorWritable();
 				while (reader.next(key, value)) {
