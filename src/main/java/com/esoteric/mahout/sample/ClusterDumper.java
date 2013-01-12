@@ -35,13 +35,15 @@ public class ClusterDumper {
 				if (file.getName().indexOf("part-m") < 0)
 					continue;
 				String aPath = file.getAbsolutePath();
-				SequenceFile.Reader reader = new SequenceFile.Reader(fs, new Path(aPath), conf);
+				SequenceFile.Reader reader = new SequenceFile.Reader(fs,
+						new Path(aPath), conf);
 				IntWritable key = new IntWritable();
 				WeightedVectorWritable value = new WeightedVectorWritable();
 				while (reader.next(key, value)) {
 					NamedVector vector = (NamedVector) value.getVector();
 					String vectorName = vector.getName();
-					bw.write(vectorName + "\t" + key.toString() + "\t" + vector.toString() + "\n");
+					bw.write(vectorName + "\t" + key.toString() + "\t"
+							+ vector.toString() + "\n");
 					if (clusterIds.containsKey(key.toString())) {
 						clusterIds.put(key.toString(),
 								clusterIds.get(key.toString()) + 1);
