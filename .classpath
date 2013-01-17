@@ -20,7 +20,7 @@
   <classpathentry kind="var" path="M2_REPO/org/apache/lucene/lucene-analyzers/3.6.0/lucene-analyzers-3.6.0.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/apache/mahout/commons/commons-cli/2.0-mahout/commons-cli-2.0-mahout.jar"/>
   <classpathentry kind="var" path="M2_REPO/org/apache/hadoop/hadoop-core/0.20.204.0/hadoop-core-0.20.204.0.jar"/>
-  <classpathentry kind="var" path="M2_REPO/commons-cli/commons-cli/1.2/commons-cli-1.2.jar"/>
+  <classpathentry kind="var" path="M2_REPO/commons-cli/commons-cli/1.2/commons-cli-1.2.jar" sourcepath="M2_REPO/commons-cli/commons-cli/1.2/commons-cli-1.2-sources.jar"/>
   <classpathentry kind="var" path="M2_REPO/commons-httpclient/commons-httpclient/3.0.1/commons-httpclient-3.0.1.jar"/>
   <classpathentry kind="var" path="M2_REPO/commons-logging/commons-logging/1.0.3/commons-logging-1.0.3.jar"/>
   <classpathentry kind="var" path="M2_REPO/commons-codec/commons-codec/1.4/commons-codec-1.4.jar"/>

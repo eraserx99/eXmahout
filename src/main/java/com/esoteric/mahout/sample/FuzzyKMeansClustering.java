@@ -21,15 +21,15 @@ public class FuzzyKMeansClustering {
 		String vectorsFolder = inputDir + "/tfidf-vectors";
 		Path samples = new Path(vectorsFolder + "/part-r-00000");
 
-		Path output = new Path("output");
+		Path output = new Path("reuters-vector-fkmeans-k50-clusters");
 		HadoopUtil.delete(conf, output);
 
-		Path clustersIn = new Path(output, "random-seeds");
+		Path clustersIn = new Path("reuters-vector-fkmeans-k50-random-seeds");
 		DistanceMeasure measure = new CosineDistanceMeasure();
 
-		RandomSeedGenerator.buildRandom(conf, samples, clustersIn, 3, measure);
-		FuzzyKMeansDriver.run(samples, clustersIn, output, measure, 0.01, 10,
-				3, true, true, 0.0, true);
+		RandomSeedGenerator.buildRandom(conf, samples, clustersIn, 100, measure);
+		FuzzyKMeansDriver.run(samples, clustersIn, output, measure, 0.01, 20,
+				(float)1.1, true, false, 0.0, false);
 
 		List<List<Cluster>> Clusters = ClusterHelper.readClusters(conf, output);
 		for (Cluster cluster : Clusters.get(Clusters.size() - 1)) {
