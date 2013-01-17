@@ -1,5 +1,6 @@
 package com.esoteric.mahout.sample;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -26,26 +27,30 @@ public class ClusterDumper extends AbstractJob {
 	public static final String DUMP_DOCUMENT_ID = "dumpDocumentId";
 	public static final String DUMP_TOP_TERMS = "dumpTopTerms";
 
-	private String getPatentMainClassfication(String s) {
-	    Pattern MY_PATTERN = Pattern.compile("(.+)-(.+).txt", Pattern.CASE_INSENSITIVE);
-	    Matcher m = MY_PATTERN.matcher(s);
-	    while(m.find()) {
-	      return m.group(2) ;
-	    }
-	    
-	    return new String();
+	private String getPatentMainClassification(String s) {
+		Pattern MY_PATTERN = Pattern.compile("(.+)-(.+).txt",
+				Pattern.CASE_INSENSITIVE);
+		Matcher m = MY_PATTERN.matcher(s);
+		while (m.find()) {
+			return m.group(2);
+		}
+
+		return new String();
 	}
 
 	@Override
 	public int run(String[] args) throws Exception {
+		// Add the mandatory -p options
 		addOption(
 				POINTS_DIR_OPTION,
 				"p",
 				"The directory containing points sequence files mapping input vectors to their cluster.",
 				true);
+		// Add the optional -d flag
 		addFlag(DUMP_DOCUMENT_ID, 
 				"d",
 				"Dump the document IDs belonging to each of the clusters");
+		// Add the optional -t flag
 		addFlag(DUMP_TOP_TERMS, 
 				"t",
 				"Dump the top terms for each of the clusters.");
@@ -54,10 +59,14 @@ public class ClusterDumper extends AbstractJob {
 		if (argMap == null) {
 			return -1;
 		}
-
+		
+		// Obtain the points directory and loop through the
+		// points files to gather the clusters and vectors matching information
 		Path pointsPathDir = new Path(getOption(POINTS_DIR_OPTION));
 		FileSystem fs = FileSystem.get(pointsPathDir.toUri(), getConf());
 		if (fs.exists(pointsPathDir)) {
+			// The points files are represented in the Hadoop sequence file format
+			// The key is the cluster ID and the value is the vector presentation of the document
 			Map<Integer, List<WeightedVectorWritable>> result = new TreeMap<Integer, List<WeightedVectorWritable>>();
 			for (Pair<IntWritable, WeightedVectorWritable> record : new SequenceFileDirIterable<IntWritable, WeightedVectorWritable>(
 					pointsPathDir, PathType.LIST, PathFilters.logsCRCFilter(),
@@ -70,28 +79,51 @@ public class ClusterDumper extends AbstractJob {
 				}
 				pointList.add(record.getSecond());
 			}
+			
+			// Loop through the collected clusters and dump the associated vectors
+			// and other information, if requested.
 			for (int k : result.keySet()) {
+				Map<String, Integer> cls = new HashMap<String, Integer>();
 				StringBuilder buf = new StringBuilder();
 				boolean first = true;
+				
 				buf.append(k).append("\t").append(result.get(k).size())
 						.append("\t");
-				buf.append("[ ");
-				if (argMap.containsKey(DUMP_DOCUMENT_ID)) {
+				
+				if (argMap.containsKey("--" + DUMP_DOCUMENT_ID)) {
+					buf.append("[ ");
 					for (WeightedVectorWritable v : result.get(k)) {
 						if (v.getVector() instanceof NamedVector) {
+							String documentId = ((NamedVector)v.getVector()).getName();
+							String mainClassification = getPatentMainClassification(documentId);
+							if(cls.containsKey(mainClassification)) {
+								cls.put(mainClassification, cls.get(mainClassification) + 1);
+							} else {
+								cls.put(mainClassification, 1);
+							}
 							if (first) {
-								buf.append(((NamedVector) v.getVector())
-										.getName());
+								buf.append(documentId);
 								first = false;
 							} else {
-								buf.append(", ")
-										.append(((NamedVector) v.getVector())
-												.getName());
+								buf.append(", ").append(documentId);
 							}
 						} 
 					} 
+					buf.append(" ]\t");
+					
+					first = true;
+					buf.append("[ ");
+					for(String cl : cls.keySet()) {
+						if(first) {
+							buf.append(cl).append(":").append(cls.get(cl));
+							first = false;
+						} else {
+							buf.append(", ").append(cl).append(":").append(cls.get(cl));
+						}
+					}
+					buf.append(" ]\t");
 				}
-				buf.append(" ]\t");
+				
 				System.out.println(buf);
 			}
 		} else {
@@ -106,30 +138,4 @@ public class ClusterDumper extends AbstractJob {
 				.run(new Configuration(), new ClusterDumper(), args);
 		System.exit(res);
 	}
-
-	/**
-	 * @param args
-	 */
-	/*
-	 * public static void main(String[] args) { try { BufferedWriter bw;
-	 * Configuration conf = new Configuration(); FileSystem fs =
-	 * FileSystem.get(conf); File pointsFolder = new File(args[0]); File files[]
-	 * = pointsFolder.listFiles(); bw = new BufferedWriter(new FileWriter(new
-	 * File(args[1]))); HashMap<String, Integer> clusterIds; clusterIds = new
-	 * HashMap<String, Integer>(5000); for (File file : files) { if
-	 * (file.getName().indexOf("part-m") < 0) continue; String aPath =
-	 * file.getAbsolutePath(); SequenceFile.Reader reader = new
-	 * SequenceFile.Reader(fs, new Path(aPath), conf); IntWritable key = new
-	 * IntWritable(); WeightedVectorWritable value = new
-	 * WeightedVectorWritable(); while (reader.next(key, value)) { NamedVector
-	 * vector = (NamedVector) value.getVector(); String vectorName =
-	 * vector.getName(); bw.write(vectorName + "\t" + key.toString() + "\t" +
-	 * vector.toString() + "\n"); if (clusterIds.containsKey(key.toString())) {
-	 * clusterIds.put(key.toString(), clusterIds.get(key.toString()) + 1); }
-	 * else clusterIds.put(key.toString(), 1); } bw.flush(); reader.close(); }
-	 * bw.flush(); bw.close(); bw = new BufferedWriter(new FileWriter(new
-	 * File(args[2]))); Set<String> keys = clusterIds.keySet(); for (String key
-	 * : keys) { bw.write(key + " " + clusterIds.get(key) + "\n"); } bw.flush();
-	 * bw.close(); } catch (IOException e) { e.printStackTrace(); } }
-	 */
 }
