@@ -49,10 +49,8 @@ public class ClusterDumper extends AbstractJob {
 				"The directory containing points sequence files mapping input vectors to their cluster.",
 				true);
 		// Add the optional -t option
-		addOption(
-				PATENTS_DIR_OPTION,
-				"a",
-				"The directory containing the original patent.");
+		addOption(PATENTS_DIR_OPTION, "a",
+				"The directory + pattern of the files containing the original patent.");
 		// Add the optional -d flag
 		addFlag(DUMP_DOCUMENT_ID, "d",
 				"Dump the document IDs belonging to each of the clusters");
@@ -66,22 +64,23 @@ public class ClusterDumper extends AbstractJob {
 		if (argMap == null) {
 			return -1;
 		}
-		
+
 		FileSystem fs = null;
 		Map<String, Integer> clsStat = new TreeMap<String, Integer>();
 
 		// Obtain the patents directory and loop through the
 		// patents files to get the number of patents per main classification
 		String patentsDirOpt = getOption(PATENTS_DIR_OPTION);
-		if(patentsDirOpt != null) {
+		if (patentsDirOpt != null) {
 			Path patentsPathDir = new Path(patentsDirOpt);
 			fs = FileSystem.get(patentsPathDir.toUri(), getConf());
 			FileStatus[] s = fs.globStatus(patentsPathDir);
-			if(s == null || s.length == 0) {
+			if (s == null || s.length == 0) {
 				return -1;
 			}
-			for(int i = 0; i < s.length; ++i) {
-				String mainClassification = getPatentMainClassification(s[i].getPath().getName());
+			for (int i = 0; i < s.length; ++i) {
+				String mainClassification = getPatentMainClassification(s[i]
+						.getPath().getName());
 				if (clsStat.containsKey(mainClassification)) {
 					clsStat.put(mainClassification,
 							clsStat.get(mainClassification) + 1);
@@ -90,7 +89,7 @@ public class ClusterDumper extends AbstractJob {
 				}
 			}
 		}
-		
+
 		// Obtain the points directory and loop through the
 		// points files to gather the clusters and vectors matching information
 		String pointsDirOpt = getOption(POINTS_DIR_OPTION);
@@ -157,7 +156,7 @@ public class ClusterDumper extends AbstractJob {
 				}
 
 				if (argMap.containsKey("--" + DUMP_STATS)) {
-					if(!argMap.containsKey("--" + DUMP_DOCUMENT_ID)) {
+					if (!argMap.containsKey("--" + DUMP_DOCUMENT_ID)) {
 						for (WeightedVectorWritable v : result.get(k)) {
 							if (v.getVector() instanceof NamedVector) {
 								// Count the number of appearances on the per
@@ -167,7 +166,8 @@ public class ClusterDumper extends AbstractJob {
 											.getVector()).getName();
 									String mainClassification = getPatentMainClassification(documentId);
 									if (clsCnt.containsKey(mainClassification)) {
-										clsCnt.put(mainClassification,
+										clsCnt.put(
+												mainClassification,
 												clsCnt.get(mainClassification) + 1);
 									} else {
 										clsCnt.put(mainClassification, 1);
@@ -180,11 +180,13 @@ public class ClusterDumper extends AbstractJob {
 					buf.append("[ ");
 					for (String cls : clsCnt.keySet()) {
 						if (first) {
-							buf.append(cls).append(":").append(clsCnt.get(cls));
+							buf.append(cls).append(":").append(clsCnt.get(cls))
+									.append("/").append(clsStat.get(cls));
 							first = false;
 						} else {
 							buf.append(", ").append(cls).append(":")
-									.append(clsCnt.get(cls)).append("/").append(clsStat.get(cls));
+									.append(clsCnt.get(cls)).append("/")
+									.append(clsStat.get(cls));
 						}
 					}
 					buf.append(" ]\t");
