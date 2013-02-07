@@ -37,7 +37,8 @@ public class Avro extends Configured implements Tool {
 
 	public static class MyAvroMapper extends
 			AvroMapper<Utf8, Pair<Text, GenericRecord>> {
-		
+	    private GenericRecord record = new GenericData.Record(SCHEMA);
+	    
 		public void map(Utf8 line,
 				AvroCollector<Pair<Text, GenericRecord>> collector,
 				Reporter reporter) throws IOException {

@@ -5,6 +5,10 @@
   <projects>
     <project>mahout-core</project>
     <project>mahout-math</project>
+    <project>mahout-integration</project>
+    <project>avro</project>
+    <project>avro-mapred</project>
+    <project>avro-ipc</project>
   </projects>
   <buildSpec>
     <buildCommand>
