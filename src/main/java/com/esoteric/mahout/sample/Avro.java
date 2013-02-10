@@ -30,8 +30,8 @@ public class Avro extends Configured implements Tool {
 			+ "  \"type\": \"record\"," + "  \"name\": \"document\","
 			+ "  \"fields\": ["
 			+ "    {\"name\": \"id\", \"type\": \"string\"},"
-			+ "    {\"name\": \"id-aux\", \"type\": \"string\"},"
-			+ "    {\"name\": \"import-timestamp\", \"type\": \"string\"}"
+			+ "    {\"name\": \"id_aux\", \"type\": \"string\"},"
+			+ "    {\"name\": \"import_timestamp\", \"type\": \"string\"},"
 			+ "    {\"name\": \"contents\", \"type\": \"string\"}" + "  ]"
 			+ "}");
 
