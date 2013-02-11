@@ -23,29 +23,16 @@ import org.apache.mahout.utils.vectors.VectorHelper;
 
 public class TFIDF2YLDA extends Configured implements Tool {
 
-	private static String[] dictionary = null;
-
-	/**
-	 * @param conf
-	 * @param termDictionary
-	 * @return
-	 */
-	public int loadTermDictionary(Configuration conf, String termDictionary) {
-		dictionary = VectorHelper.loadTermDictionary(conf, termDictionary);
-		return dictionary.length;
-	}
-
-	/**
-	 *
-	 */
 	public static class TFIDF2YLDAMapper extends
 			Mapper<Text, VectorWritable, Text, NullWritable> {
+		
+		private String[] dictionary = null;
 
 		/**
 		 * @param s
 		 * @return
 		 */
-		private static String getAuxId(String s) {
+		private String getAuxId(String s) {
 			Pattern MY_PATTERN = Pattern.compile("(.+)-(.+)",
 					Pattern.CASE_INSENSITIVE);
 			Matcher m = MY_PATTERN.matcher(s);
@@ -55,7 +42,17 @@ public class TFIDF2YLDA extends Configured implements Tool {
 
 			return new String();
 		}
-
+		
+		/**
+		 * @param conf
+		 * @param termDictionary
+		 * @return
+		 */
+		private int loadTermDictionary(Configuration conf, String termDictionary) {
+			dictionary = VectorHelper.loadTermDictionary(conf, termDictionary);
+			return dictionary.length;
+		}
+		
 		/*
 		 * (non-Javadoc)
 		 * 
@@ -65,6 +62,9 @@ public class TFIDF2YLDA extends Configured implements Tool {
 		 */
 		@Override
 		protected void setup(Context context) {
+			Configuration conf = context.getConfiguration();
+			loadTermDictionary(conf, conf.get("termDictionary"));
+			System.out.print("loadTermDictionary / Dictionary size => " + dictionary.length);
 		}
 
 		/*
@@ -108,8 +108,8 @@ public class TFIDF2YLDA extends Configured implements Tool {
 
 		FileInputFormat.addInputPath(job, new Path(args[0]));
 		FileOutputFormat.setOutputPath(job, new Path(args[1]));
-
-		loadTermDictionary(getConf(), args[2]);
+		
+		job.getConfiguration().set("termDictionary", args[2]);
 
 		job.setInputFormatClass(SequenceFileInputFormat.class);
 
